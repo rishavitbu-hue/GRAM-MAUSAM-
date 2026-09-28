@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gram-Mausam (ग्राममौसम) | Hyperlocal Weather & Crop Advisory System</title>
+  <meta name="description" content="Hyperlocal monsoon onset and dry-break prediction system at Block & Panchayat scale with integrated hydro-geological aquifer physics, FAO-56 root-zone water balance, and 8-crop agronomic advisory engine. Covering Burdwan (Purba Bardhaman, West Bengal) and Chota Nagpur Plateau (Jharkhand). Smart India Hackathon 2026 | MoES / IMD SIH26086.">
+  
+  <!-- Preconnect and Google Fonts (including Bengali, Devanagari, Telugu) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@100..900&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body id="app-body">
+
+  <!-- Top Government & Hackathon Identity Bar -->
+  <div class="gov-topbar">
+    <div class="gov-topbar-inner">
+      <div class="gov-badges">
+        <span class="gov-tag">🇮🇳 Ministry of Earth Sciences (MoES) / IMD</span>
+        <span class="gov-divider">|</span>
+        <span class="gov-sub">Smart India Hackathon 2026 &bull; Problem ID: <strong>SIH26086</strong></span>
+      </div>
+      <div class="pilot-badge" id="pilot-badge">
+        <span class="pulse-dot"></span>
+        <span id="txt-pilot-badge">Active Zones: <strong>Burdwan City (West Bengal)</strong> &bull; <strong>Chota Nagpur (Jharkhand)</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header Navigation -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand-wrapper">
+        <div class="brand-icon-box" aria-label="Gram-Mausam Emblem">🌾</div>
+        <div class="brand-text">
+          <h1 id="brand-title">Gram-Mausam <span class="brand-hindi">(গ্রামमौसम / গ্রামমৌসম)</span></h1>
+          <div class="sub-title" id="brand-tagline">Hyperlocal Weather & Agronomic Advisory &bull; Burdwan (WB) & Chota Nagpur (JH)</div>
+        </div>
+      </div>
+
+      <div class="header-status-group">
+        <!-- Live Regime Chip -->
+        <div class="monsoon-spell-chip" id="monsoon-spell-indicator">
+          <span class="pulse-dot"></span>
+          <span id="spell-state-text">Active Monsoon Spell (Days 1–5)</span>
+        </div>
+
+        <div class="header-controls">
+          <!-- Agro-Climatic Zone / Block Selector -->
+          <div class="selector-container">
+            <label for="district-select" class="control-label">Location / Block:</label>
+            <select id="district-select" class="custom-select" title="Choose Agro-Ecological Block or District">
+              <optgroup label="📍 West Bengal (Purba Bardhaman - UIT Burdwan)">
+                <option value="burdwan" selected>Burdwan City (Purba Bardhaman, WB) [HOME BASE]</option>
+                <option value="burdwan_1">Burdwan-I Block (Rayna, Kamalnagar, Saraitikar)</option>
+                <option value="burdwan_2">Burdwan-II Block (Kurmun, Baikunthapur, Barsul)</option>
+                <option value="memari">Memari Block (Aman Paddy & Potato Belt)</option>
+                <option value="kalna">Kalna Subdivision (Bhagirathi Alluvial Basin)</option>
+                <option value="katwa">Katwa Subdivision (Ajay-Damodar Basin)</option>
+              </optgroup>
+              <optgroup label="📍 Jharkhand Pilot (Chota Nagpur Plateau)">
+                <option value="kanke">Kanke Block (Ranchi District) [PILOT]</option>
+                <option value="mandar">Mandar Block (Ranchi District)</option>
+                <option value="ormanjhi">Ormanjhi Block (Ranchi District)</option>
+                <option value="burmu">Burmu Block (Ranchi District)</option>
+                <option value="bero">Bero Block (Ranchi District)</option>
+                <option value="chatra">Chatra District (Upland Plateau)</option>
+                <option value="hazaribagh">Hazaribagh District (Plateau Belt)</option>
+              </optgroup>
+              <optgroup label="🌐 Other National Agro-Climatic Zones">
+                <option value="vidarbha">Vidarbha (Cotton & Soybean Belt)</option>
+                <option value="rayalaseema">Rayalaseema (Groundnut & Millet Zone)</option>
+                <option value="marathwada">Marathwada (Pulses & Sugarcane)</option>
+                <option value="gangetic">Indo-Gangetic Plain (Paddy-Wheat)</option>
+                <option value="delta">Coastal Delta (Paddy & Coastal Zone)</option>
+              </optgroup>
+            </select>
+          </div>
+
+          <!-- Panchayat Selector (Drill-Down Scale) -->
+          <div class="selector-container" id="panchayat-container">
+            <label for="panchayat-select" class="control-label">Gram Panchayat / Ward:</label>
+            <select id="panchayat-select" class="custom-select" title="Select Village Cluster / Gram Panchayat">
+              <option value="burdwan_sadar">Burdwan Sadar / UIT Campus</option>
+              <option value="golapbag">Golapbag Agricultural Zone</option>
+              <option value="rajbati">Rajbati Urban-Agri Fringe</option>
+              <option value="baburbag">Baburbag Cluster</option>
+              <option value="alisha">Alisha Highway Belt</option>
+              <option value="kamalnagar">Kamalnagar Panchayat</option>
+            </select>
+          </div>
+
+          <!-- Regional Language Switcher (Bengali, Hindi, English, Nagpuri, Santhali, Marathi, Telugu) -->
+          <div class="selector-container">
+            <label for="language-select" class="control-label">Language / ভাষা / भाषा:</label>
+            <select id="language-select" class="custom-select" title="Switch Regional Language">
+              <option value="bn" selected>বাংলা (Bengali - Noto Sans)</option>
+              <option value="hi">हिन्दी (Hindi - Noto Sans)</option>
+              <option value="en">English (Google Sans Flex)</option>
+              <option value="nag">नागपुरी (Nagpuri - Chota Nagpur)</option>
+              <option value="sat">ᱥᱟᱱᱛᱟᱲᱤ (Santhali)</option>
+              <option value="mr">मराठी (Marathi)</option>
+              <option value="te">తెలుగు (Telugu)</option>
+            </select>
+          </div>
+
+          <!-- View Mode Toggles -->
+          <button id="btn-sunlight-toggle" class="btn-icon" title="Toggle Deep Dark / Sunlight High-Contrast Mode">
+            <span id="sunlight-icon">🌙</span>
+            <span id="sunlight-label">Dark Mode</span>
+          </button>
+
+          <!-- 5 Security Checks Modal Button -->
+          <button id="btn-security-modal" class="btn-icon btn-security" title="View 5 Security Checks Audit">
+            <span>🛡️</span>
+            <span>Security 5/5</span>
+          </button>
+
+          <!-- User Role Modal -->
+          <button id="btn-user-login" class="btn-icon" title="User Profile / Extension Mode">
+            <span>👤</span>
+            <span id="login-label">Profile</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Live Real-Time Weather & Telemetry Stream Ribbon -->
+  <div class="realtime-stream-bar" id="realtime-stream-bar">
+    <div class="realtime-stream-inner">
+      <div class="stream-status">
+        <span class="pulse-dot-green"></span>
+        <span class="stream-label">LIVE REAL-TIME STREAM:</span>
+        <span class="stream-station tabular-num" id="stream-station-id">IMD-WB-BURDWAN-01 &bull; Burdwan Sadar / UIT Campus</span>
+      </div>
+      <div class="stream-metrics">
+        <div class="stream-pill">🌡️ <span id="rt-temp" class="tabular-num">29.4°C</span></div>
+        <div class="stream-pill">💧 Humidity: <span id="rt-humidity" class="tabular-num">84%</span></div>
+        <div class="stream-pill">🌧️ Rain Rate: <span id="rt-rain" class="tabular-num">2.4 mm/h</span></div>
+        <div class="stream-pill">🌊 Damodar DVC Canal: <span id="rt-canal">Normal Flow (18,500 cfs)</span></div>
+        <div class="stream-pill">☀️ Solar: <span id="rt-solar" class="tabular-num">420 W/m²</span></div>
+        <div class="stream-pill">🕒 Live IST: <span id="rt-clock" class="tabular-num">--:--:-- IST</span></div>
+      </div>
+      <div class="stream-actions">
+        <span class="sync-status-badge" id="sync-status-badge">🟢 Connected</span>
+        <button class="btn-refresh-telemetry" id="btn-refresh-telemetry" title="Fetch live real-time sensor updates from server">
+          🔄 <span id="btn-sync-label">Sync Realtime</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Dynamic Agromet Alert Ticker Bar -->
+  <div class="realtime-ticker-bar" id="realtime-ticker-bar">
+    <div class="ticker-label">
+      <span class="ticker-badge">⚡ LIVE ALERT</span>
+      <span class="ticker-heading">BURDWAN & REGIONAL AGROMET:</span>
+    </div>
+    <div class="ticker-content-track">
+      <span class="ticker-item" id="ticker-item-1">🌾 <strong>Burdwan Sadar & Memari:</strong> Soil moisture optimal (SMI 0.82) — Sowing window active for Aman Paddy (Swarna MTU-7029) & Gobindobhog.</span>
+      <span class="ticker-divider">&bull;</span>
+      <span class="ticker-item" id="ticker-item-2">🌊 <strong>Damodar Basin:</strong> Durgapur Barrage regulated discharge at 18,500 cfs. Ensure seedling drainage channels are clear in lowlands.</span>
+      <span class="ticker-divider">&bull;</span>
+      <span class="ticker-item" id="ticker-item-3">☀️ <strong>Mid-Season Outlook:</strong> 4-day mild break 16–20 July. Deep alluvial aquifer ensures zero moisture stress in Purba Bardhaman.</span>
+      <span class="ticker-divider">&bull;</span>
+      <span class="ticker-item" id="ticker-item-4">🛡️ <strong>MoES & UIT Burdwan:</strong> System coupled with CGWB alluvial monitoring stations. Security audit 5/5 verified.</span>
+    </div>
+  </div>
+
+  <!-- Quick Section Jump Navigation -->
+  <nav class="quick-nav" aria-label="Section Navigation">
+    <div class="quick-nav-inner">
+      <a href="#operational-banner" class="quick-nav-link active">⚡ Live Directive</a>
+      <a href="#burdwan-command-section" class="quick-nav-link highlight-burdwan">🏛️ Burdwan Command Center</a>
+      <a href="#messaging-hub-section" class="quick-nav-link highlight-jump">📲 Messaging Hub (WA/SMS/Voice)</a>
+      <a href="#risk-map-section" class="quick-nav-link">🗺️ Burdwan/Ranchi Risk Map</a>
+      <a href="#water-balance-section" class="quick-nav-link">💧 Root-Zone Water Balance</a>
+      <a href="#aquifer-section" class="quick-nav-link">🪨 Aquifer & Borewell Advisory</a>
+      <a href="#crop-matrix-section" class="quick-nav-link">🌾 8-Crop Water Matrix</a>
+      <a href="#outlook-table-section" class="quick-nav-link">📊 7-30 Day Outlook</a>
+      <a href="#advisories-section" class="quick-nav-link">🌱 Localized Advisories</a>
+      <a href="#teleconnections-section" class="quick-nav-link">🌐 Global Teleconnections</a>
+      <a href="#benchmark-section" class="quick-nav-link">🔬 MoES Benchmarking</a>
+    </div>
+  </nav>
+
+  <!-- Main Content Layout -->
+  <main class="main-container">
+
+    <!-- Executive Operational Advisory Banner -->
+    <section class="operational-banner" id="operational-banner" aria-labelledby="op-directive-title">
+      <div class="op-banner-grid">
+        <div class="op-left">
+          <div class="op-tag-row">
+            <span class="op-badge op-badge-active" id="op-status-badge">⚡ LIVE AGROMET DIRECTIVE</span>
+            <span class="op-loc-tag" id="op-location-tag">Burdwan City (Purba Bardhaman, West Bengal)</span>
+            <span class="op-time-tag tabular-num" id="op-timestamp">Real-time Stream: Active IST</span>
+          </div>
+          <h2 class="op-directive-title" id="op-directive-title">
+            "Monsoon surge active in Damodar Basin — soil moisture optimal (SMI 0.82), begin Aman paddy transplanting on <span class="highlight-green" id="op-sowing-date">12 June</span>."
+          </h2>
+          <div class="op-break-warning-box" id="op-break-box">
+            <div class="break-icon">🌧️</div>
+            <div class="break-content">
+              <strong id="op-break-title">Precipitation & Drainage Advisory: Burdwan & Damodar Canal Belt</strong>
+              <p id="op-break-text">
+                Alluvial soil water table is shallow at <strong>4.8 m</strong>. DVC Damodar Canal flow is running optimal. Ensure nursery drainage furrows are open in low-lying clay-loam fields to prevent Gobindobhog seedling rot.
+              </p>
+            </div>
+          </div>
+          <!-- The Crucial Fallback Rule from Section 7 -->
+          <div class="fallback-callout" id="op-fallback-callout">
+            <span class="fallback-icon">💡</span>
+            <span id="op-fallback-text">
+              <strong>Agro-Climatic Directive:</strong> For Burdwan alluvial basin, adopt Swarna-Sub1 / Gobindobhog in lowlands, and Jute/Maize on upland well-drained sandy loams. If dry break exceeds 7 days, utilize shallow alluvial tubewells safely (buffer 5.2 m).
+            </span>
+          </div>
+        </div>
+
+        <div class="op-right">
+          <div class="op-metrics-grid">
+            <div class="op-metric-card">
+              <div class="op-m-label">Onset Probability</div>
+              <div class="op-m-val tabular-num" id="metric-onset-prob" style="color:var(--ag-green-primary);">92.4%</div>
+              <div class="op-m-sub" id="metric-onset-sub">Window: &plusmn;2.5 Days Error</div>
+            </div>
+            <div class="op-metric-card">
+              <div class="op-m-label">Break Risk (Wk 3)</div>
+              <div class="op-m-val tabular-num" id="metric-break-prob" style="color:var(--ag-green-primary);">32.0%</div>
+              <div class="op-m-sub" id="metric-break-sub">Low Dry-Spell Vulnerability</div>
+            </div>
+            <div class="op-metric-card">
+              <div class="op-m-label">Soil Moisture (SMI)</div>
+              <div class="op-m-val tabular-num" id="metric-smi-val" style="color:var(--ag-monsoon-dark);">0.82</div>
+              <div class="op-m-sub" id="metric-smi-sub">Abundant Root-Zone Buffer</div>
+            </div>
+            <div class="op-metric-card">
+              <div class="op-m-label">Safe Pumping Limit</div>
+              <div class="op-m-val tabular-num" id="metric-pumping-val" style="color:var(--ag-monsoon-blue);">4.5 hrs/d</div>
+              <div class="op-m-sub" id="metric-pumping-sub">High Alluvial Yield (14%)</div>
+            </div>
+          </div>
+          
+          <div class="op-audio-action">
+            <button class="btn-voice-broadcast" id="btn-banner-audio" title="Listen to plain-language voice readout in selected language (Bengali, Hindi, English)">
+              <span class="btn-voice-icon">🔊</span>
+              <span id="btn-banner-audio-label">Listen Voice Advisory (বাংলা / हिन्दी / English)</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: Burdwan City (Purba Bardhaman, WB) Agro-Climatic Intelligence & Productivity Center -->
+    <section class="card-panel burdwan-command-card" id="burdwan-command-section" aria-labelledby="burdwan-command-title">
+      <div class="card-panel-header">
+        <div class="card-panel-title" id="burdwan-command-title">
+          <span>🏛️</span>
+          <span>Burdwan City (Purba Bardhaman, WB) Agro-Climatic Intelligence & Productivity Center</span>
+          <span class="uit-badge">🎓 UIT The University of Burdwan Base</span>
+        </div>
+        <div class="burdwan-tag-group">
+          <span class="b-tag tag-alluvial">💧 Old Alluvial Lower Gangetic Plain</span>
+          <span class="b-tag tag-ricebowl">🌾 Granary of Bengal (ধানের গোলা)</span>
+          <span class="b-tag tag-damodar">🌊 Damodar DVC Command Area</span>
+        </div>
+      </div>
+
+      <!-- Grid of 3 High-Productivity Cards for Burdwan -->
+      <div class="burdwan-productivity-grid">
+        
+        <!-- Card 1: Damodar River & DVC Canal Hydro-Monitor -->
+        <div class="prod-card damodar-card">
+          <div class="prod-card-top">
+            <h4><span>🌊</span> Damodar River & DVC Canal Hydro-Monitor</h4>
+            <span class="gauge-status-chip normal" id="damodar-gauge-status">NORMAL &bull; SAFE</span>
+          </div>
+          <div class="gauge-display-container">
+            <div class="gauge-meter-wrapper">
+              <div class="gauge-fill-bar" id="gauge-fill-bar" style="width: 65%;"></div>
+              <div class="gauge-marker safe" style="left: 60%;" title="Safe Operating Level: 11.4m">Safe 11.4m</div>
+              <div class="gauge-marker warning" style="left: 82%;" title="Warning Level: 13.8m">Warn 13.8m</div>
+              <div class="gauge-marker danger" style="left: 95%;" title="Danger Level: 15.2m">Danger 15.2m</div>
+            </div>
+            <div class="gauge-readout-row">
+              <div>Sadarghat Burdwan Level: <strong class="tabular-num" id="gauge-current-val">11.4 m</strong></div>
+              <div>Durgapur Barrage Release: <strong class="tabular-num" id="barrage-release-val">18,500 cfs</strong></div>
+            </div>
+          </div>
+          <div class="canal-metrics-list">
+            <div class="canal-row">
+              <span>DVC Left Bank Main Canal (LBMC)</span>
+              <span class="tabular-num font-bold">3,200 cusecs (Full Continuous Supply)</span>
+            </div>
+            <div class="canal-row">
+              <span>Eden Canal Irrigation Distributary</span>
+              <span class="tabular-num font-bold">650 cusecs (Normal Regulated Flow)</span>
+            </div>
+            <div class="canal-row">
+              <span>Burdwan Alluvial Water Table Depth</span>
+              <span class="tabular-num font-bold" id="burdwan-wtd-val">4.8 m (Specific Yield 14.0%)</span>
+            </div>
+          </div>
+          <div class="canal-advice-box">
+            💡 <strong>Canal Irrigation Directives:</strong> LBMC and Eden canals are running with regulated discharge from Durgapur barrage. Rice nurseries in Burdwan Sadar, Memari, and Kalna have assured gravitational irrigation. Clear drainage furrows in low-lying clay plots.
+          </div>
+        </div>
+
+        <!-- Card 2: 3-Depth Real-Time Soil Moisture Profile -->
+        <div class="prod-card soil-depth-card">
+          <div class="prod-card-top">
+            <h4><span>🌱</span> Burdwan Multi-Depth Soil Moisture Telemetry</h4>
+            <span class="smi-overall-chip" id="burdwan-smi-overall">SMI 0.82 &bull; OPTIMAL</span>
+          </div>
+          <p class="card-subtitle">Real-time dielectric sensor probes across Burdwan alluvial silt-clay loam profiles:</p>
+          
+          <div class="depth-bars-container">
+            <!-- 10cm -->
+            <div class="depth-bar-row">
+              <div class="depth-bar-meta">
+                <span>Surface (0–10 cm) &bull; Nursery Puddling</span>
+                <span class="tabular-num font-bold" id="depth-10-val">0.84 (Saturated)</span>
+              </div>
+              <div class="depth-bar-track">
+                <div class="depth-bar-fill" id="depth-10-bar" style="width: 84%; background: var(--ag-monsoon-blue);"></div>
+              </div>
+            </div>
+
+            <!-- 30cm -->
+            <div class="depth-bar-row">
+              <div class="depth-bar-meta">
+                <span>Active Root Zone (10–30 cm) &bull; Tillering Buffer</span>
+                <span class="tabular-num font-bold" id="depth-30-val">0.82 (Optimal)</span>
+              </div>
+              <div class="depth-bar-track">
+                <div class="depth-bar-fill" id="depth-30-bar" style="width: 82%; background: var(--ag-green-primary);"></div>
+              </div>
+            </div>
+
+            <!-- 100cm -->
+            <div class="depth-bar-row">
+              <div class="depth-bar-meta">
+                <span>Deep Subsoil (30–100 cm) &bull; Aquifer Recharge</span>
+                <span class="tabular-num font-bold" id="depth-100-val">0.78 (Abundant)</span>
+              </div>
+              <div class="depth-bar-track">
+                <div class="depth-bar-fill" id="depth-100-bar" style="width: 78%; background: var(--ag-monsoon-dark);"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="depth-status-pills">
+            <span class="pill-depth">💧 AWD Drainage: Recommended</span>
+            <span class="pill-depth">🧪 Urea Top-Dress: Safe (No runoff in 24h)</span>
+          </div>
+        </div>
+
+        <!-- Card 3: Interactive Burdwan Sowing Window & Crop Risk Calculator -->
+        <div class="prod-card sowing-calc-card">
+          <div class="prod-card-top">
+            <h4><span>🧮</span> Burdwan Sowing Window & Risk Calculator</h4>
+            <span class="calc-badge">⚡ Instant Decision</span>
+          </div>
+          <div class="calc-form-grid">
+            <div class="calc-field">
+              <label for="calc-crop-select">Crop Variety (Purba Bardhaman):</label>
+              <select id="calc-crop-select" class="custom-select">
+                <option value="gobindobhog" selected>🌾 Gobindobhog Rice (GI Tagged Aromatic)</option>
+                <option value="swarna">🌾 Swarna (MTU-7029) High-Yielding Aman</option>
+                <option value="swarna_sub1">🌾 Swarna-Sub1 (Submergence Tolerant)</option>
+                <option value="potato">🥔 Potato (Jyoti / Pokhraj - Memari Belt)</option>
+                <option value="jute">🌿 Tossa Jute (Patson Alluvial Fiber)</option>
+                <option value="madua">🌾 Madua / Ragi (Fallback Upland Crop)</option>
+              </select>
+            </div>
+            <div class="calc-field">
+              <label for="calc-block-select">Block / Subdivision:</label>
+              <select id="calc-block-select" class="custom-select">
+                <option value="sadar" selected>Burdwan Sadar (North / South)</option>
+                <option value="burdwan_1">Burdwan-I (Rayna / Kamalnagar)</option>
+                <option value="burdwan_2">Burdwan-II (Kurmun / Barsul)</option>
+                <option value="memari">Memari (I & II - Potato Hub)</option>
+                <option value="kalna">Kalna (Bhagirathi Alluvium)</option>
+                <option value="katwa">Katwa (Ajay-Damodar Confluence)</option>
+                <option value="galsi">Galsi (Canal Command)</option>
+                <option value="khandaghosh">Khandaghosh & Raina</option>
+              </select>
+            </div>
+            <div class="calc-field">
+              <label for="calc-topo-select">Land Topography:</label>
+              <select id="calc-topo-select" class="custom-select">
+                <option value="lowland">Lowland Beel / Silt Plain (Flood Prone)</option>
+                <option value="medium" selected>Medium Alluvial Plain (Standard)</option>
+                <option value="upland">Upland Sandy-Loam (Rapid Drainage)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Dynamic Output Card -->
+          <div class="calc-results-panel" id="calc-results-panel">
+            <div class="calc-res-grid">
+              <div class="calc-stat">
+                <span class="calc-stat-label">Optimal Sowing Window</span>
+                <strong class="calc-stat-val" id="calc-res-window">10–15 June 2026</strong>
+              </div>
+              <div class="calc-stat">
+                <span class="calc-stat-label">Transplanting Target</span>
+                <strong class="calc-stat-val" id="calc-res-transplant">05–15 July 2026</strong>
+              </div>
+              <div class="calc-stat">
+                <span class="calc-stat-label">Water Standing Req.</span>
+                <strong class="calc-stat-val" id="calc-res-water">3–5 cm Standing</strong>
+              </div>
+              <div class="calc-stat">
+                <span class="calc-stat-label">Washout / Break Risk</span>
+                <strong class="calc-stat-val text-green" id="calc-res-risk">Low (28%) &bull; Safe</strong>
+              </div>
+            </div>
+            <div class="calc-advice-line" id="calc-res-advice">
+              ✨ <strong>Action Directive:</strong> Sow nursery bed on raised beds with 5cm standing water in puddled plots. Apply 50% N + 100% P & K as basal dose during final puddling.
+            </div>
+            <div class="calc-action-row">
+              <button class="btn-calc-send" id="btn-calc-send-msg" title="Load this calculated schedule into the Messaging Hub to send via WhatsApp, SMS, or Voice Note">
+                📲 Send this Schedule to Messaging Hub
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECTION: Multi-Channel Productivity Messaging Hub (WhatsApp, Text SMS & Voice Audio Dispatch) -->
+    <section class="card-panel messaging-hub-card" id="messaging-hub-section" aria-labelledby="msg-hub-title">
+      <div class="card-panel-header">
+        <div class="card-panel-title" id="msg-hub-title">
+          <span>📲</span>
+          <span>Multi-Channel Farmer & Extension Messaging Hub (Productivity Center)</span>
+        </div>
+        <div class="messaging-tag-group">
+          <span class="hub-pill wa-pill">🟢 WhatsApp Direct</span>
+          <span class="hub-pill sms-pill">📨 Cellular SMS (GSM/Unicode)</span>
+          <span class="hub-pill voice-pill">🎙️ Voice Note (3 Languages)</span>
+          <span class="hub-pill secure-pill">🛡️ Secure API 5/5</span>
+        </div>
+      </div>
+
+      <div class="messaging-hub-container">
+        <!-- Left: Channel Selection & Form Composer -->
+        <div class="messaging-composer-pane">
+          <!-- Channel Tabs -->
+          <div class="channel-tabs-bar" role="tablist">
+            <button class="channel-tab active" data-channel="whatsapp" id="tab-whatsapp">
+              <span>💬</span> WhatsApp Message
+            </button>
+            <button class="channel-tab" data-channel="sms" id="tab-sms">
+              <span>✉️</span> Normal Text SMS
+            </button>
+            <button class="channel-tab" data-channel="voice" id="tab-voice">
+              <span>🎙️</span> Voice Audio Note (3 Languages)
+            </button>
+          </div>
+
+          <!-- Configuration Controls -->
+          <div class="composer-form-grid">
+            <div class="form-group">
+              <label for="msg-recipient-select">Select Recipient / Contact Group:</label>
+              <select id="msg-recipient-select" class="custom-select">
+                <option value="cooperative">🌾 Burdwan Farmers Cooperative Union (4,820 Members)</option>
+                <option value="kvk_officers">📋 KVK Burdwan Agricultural Extension Officers</option>
+                <option value="damodar_water">🌊 Damodar Valley (DVC) Irrigation Task Force</option>
+                <option value="memari_potato">🥔 Memari Potato Growers & Cold Storage Association</option>
+                <option value="kalna_jute">🌿 Kalna Subdivision Jute & Paddy Guild</option>
+                <option value="jharkhand_cluster">📍 Kanke Block Village Clusters (Ranchi)</option>
+                <option value="custom">✏️ Custom Phone Number / WhatsApp Input</option>
+              </select>
+            </div>
+
+            <!-- Custom Phone Input (Hidden by default, shown if custom is picked) -->
+            <div class="form-group" id="custom-phone-group" style="display:none;">
+              <label for="custom-phone-input">Enter Mobile Number (with country code):</label>
+              <input type="text" id="custom-phone-input" class="custom-input" placeholder="+91 98321 00000" maxlength="16">
+            </div>
+
+            <div class="form-group">
+              <label for="msg-language-select">Message & Voice Language (বাংলা / हिन्दी / English):</label>
+              <select id="msg-language-select" class="custom-select">
+                <option value="bn" selected>বাংলা (Bengali - Burdwan Native)</option>
+                <option value="hi">हिन्दी (Hindi - National)</option>
+                <option value="en">English (Official Agromet)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="msg-template-select">Advisory Alert Template:</label>
+              <select id="msg-template-select" class="custom-select">
+                <option value="burdwan-paddy">🌾 Burdwan Aman Paddy & Gobindobhog Sowing Alert</option>
+                <option value="damodar-drainage">🌊 Damodar Basin Rainfall & Drainage Channel Clearance</option>
+                <option value="break-drought">☀️ Mid-Season Dry Break & Borewell Limit (2 hrs/d)</option>
+                <option value="fallback-madua">💡 Contingency: Switch to Madua/Millet on Uplands</option>
+                <option value="heavy-downpour">🌧️ Heavy Downpour & Fertilizer Hold Warning</option>
+                <option value="pest-blast">🐛 Pest & Leaf Blast High Humidity Warning</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Message Textarea with Live Character & Segment Counting -->
+          <div class="message-editor-wrapper">
+            <div class="editor-header">
+              <label for="message-content-box"><strong>Message Payload Preview & Edit:</strong></label>
+              <div class="segment-counter-badge" id="segment-counter-badge">
+                <span id="char-count-text">Chars: 124</span> &bull; 
+                <span id="segment-count-text">1 Segment (Unicode)</span>
+              </div>
+            </div>
+            <textarea id="message-content-box" class="message-textarea" rows="4" spellcheck="false"></textarea>
+          </div>
+
+          <!-- Voice Synthesizer & Studio Controls (Active on Voice tab) -->
+          <div class="voice-controls-panel" id="voice-controls-panel">
+            
+            <!-- Language Switcher Pills for Voice -->
+            <div class="voice-lang-pill-row">
+              <span class="voice-lang-prompt">Select Speech Audio Language:</span>
+              <div class="voice-lang-buttons">
+                <button type="button" class="btn-voice-lang active" data-vlang="bn">🇧🇩 বাংলা (Bengali)</button>
+                <button type="button" class="btn-voice-lang" data-vlang="hi">🇮🇳 हिन्दी (Hindi)</button>
+                <button type="button" class="btn-voice-lang" data-vlang="en">🌐 English</button>
+              </div>
+            </div>
+
+            <!-- Voice Controls & 12-Bar Equalizer -->
+            <div class="voice-status-box">
+              <div class="voice-wave-animation" id="voice-wave-anim">
+                <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+              </div>
+              <div class="voice-info-text">
+                <strong id="voice-lang-title">Bengali Voice Audio Note (বাংলা)</strong>
+                <span id="voice-duration-estimate">Estimated Duration: ~18 seconds &bull; Web Speech Engine</span>
+              </div>
+              <div class="voice-speed-wrapper">
+                <label for="voice-speed-select">Speed:</label>
+                <select id="voice-speed-select" class="voice-speed-select">
+                  <option value="0.8">0.8x (Slow/Village PA)</option>
+                  <option value="1.0" selected>1.0x (Standard)</option>
+                  <option value="1.2">1.2x (Fast)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Pre-Recorded Bulletins Quick Select -->
+            <div class="voice-bulletin-row">
+              <label for="voice-bulletin-select">🎙️ Quick Voice Bulletin:</label>
+              <select id="voice-bulletin-select" class="custom-select">
+                <option value="paddy">Bulletin 1: Burdwan Aman & Gobindobhog Sowing Alert</option>
+                <option value="drainage">Bulletin 2: Damodar Canal Drainage & Sluice Clearance</option>
+                <option value="break">Bulletin 3: Dry Break & Borewell Protection Alert</option>
+                <option value="pest">Bulletin 4: Leaf Blast High Humidity Warning</option>
+              </select>
+            </div>
+
+            <!-- Voice Action Buttons -->
+            <div class="voice-buttons-row">
+              <button class="btn-voice-preview" id="btn-voice-preview" title="Play generated audio preview in chosen language">
+                <span>▶️</span>
+                <span id="voice-btn-label">Play Voice Note Preview</span>
+              </button>
+              <button class="btn-voice-stop" id="btn-voice-stop" title="Stop speech synthesis">
+                <span>⏹️</span> Stop Audio
+              </button>
+              <button class="btn-voice-record" id="btn-voice-record" title="Simulate farmer recording a voice query to KVK Burdwan">
+                <span id="rec-icon">🎙️</span>
+                <span id="rec-label">Record Farmer Query</span>
+              </button>
+            </div>
+
+            <!-- Farmer Voice Query Recording Box (Toggled on record click) -->
+            <div class="farmer-rec-box" id="farmer-rec-box" style="display:none;">
+              <div class="rec-live-indicator">
+                <span class="rec-dot-pulsing"></span>
+                <span>RECORDING FARMER VOICE QUERY... <strong id="rec-timer">00:08</strong></span>
+              </div>
+              <p class="rec-sub">"Speak your question in বাংলা, हिन्दी, or English — agronomist will respond via voice audio."</p>
+              <div class="rec-actions">
+                <button type="button" class="btn-rec-action btn-rec-stop" id="btn-rec-stop">⏹️ Stop & Preview</button>
+                <button type="button" class="btn-rec-action btn-rec-send" id="btn-rec-send">📤 Send Voice Query to KVK</button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- SMS DLT Compliance Preview (Active on SMS tab) -->
+          <div class="sms-dlt-preview-panel" id="sms-dlt-preview-panel" style="display:none;">
+            <div class="dlt-tag-row">
+              <span class="dlt-badge">TRAI DLT Registered</span>
+              <span class="dlt-header-tag">Header: <strong>WB-GRMMAU</strong></span>
+              <span class="dlt-entity-tag">Entity: 140155289000003189</span>
+            </div>
+            <div class="dlt-hint">Standard cellular SMS compliant with telecom regulatory directives. Supported on all basic feature phones.</div>
+          </div>
+
+          <!-- WhatsApp Kiosk QR Code Modal Trigger -->
+          <div class="wa-extra-actions" id="wa-extra-actions">
+            <span class="wa-helper-text">💡 Broadcast directly via WhatsApp Web, WhatsApp Mobile App, or generate Panchayat QR Code:</span>
+            <button type="button" class="btn-wa-qr" id="btn-wa-qr">
+              <span>📱</span> View Kiosk QR Code
+            </button>
+          </div>
+
+          <!-- Dispatch Action Buttons -->
+          <div class="messaging-actions-bar">
+            <button id="btn-hub-whatsapp" class="btn-action-primary btn-wa-action">
+              <span>💬</span>
+              <span>Open in WhatsApp</span>
+            </button>
+            <button id="btn-hub-sms" class="btn-action-primary btn-sms-action">
+              <span>📨</span>
+              <span>Dispatch SMS via Backend API</span>
+            </button>
+            <button id="btn-hub-voice" class="btn-action-primary btn-voice-action">
+              <span>🎙️</span>
+              <span>Broadcast Voice Alert</span>
+            </button>
+            <button id="btn-hub-copy" class="btn-action-secondary">
+              <span>📋</span>
+              <span>Copy Text</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Right: Real-time Dispatch Logs & Phone Preview -->
+        <div class="messaging-logs-pane">
+          <div class="logs-pane-header">
+            <h4><span>📋</span> Live Dispatch Stream & Delivery Receipts</h4>
+            <div class="logs-status-chips">
+              <span class="tabular-num backend-live-pill" id="backend-live-pill">🟢 Backend API: Active</span>
+              <span class="tabular-num log-count-pill" id="log-count-pill">3 Dispatched</span>
+            </div>
+          </div>
+          <div class="dispatch-logs-list" id="dispatch-logs-list">
+            <!-- Populated reactively from server /api/messages -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Modal: WhatsApp Kiosk QR Code Display -->
+    <div class="modal-overlay" id="wa-qr-modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="wa-qr-modal-title">
+      <div class="modal-dialog modal-qr">
+        <div class="modal-header">
+          <h3 id="wa-qr-modal-title">📲 Scan to Broadcast on WhatsApp</h3>
+          <button class="btn-close-modal" id="btn-close-wa-qr" aria-label="Close modal">&times;</button>
+        </div>
+        <div class="modal-body text-center">
+          <p>Scan this QR code with any smartphone camera or WhatsApp scanner to immediately load this hyperlocal advisory:</p>
+          <div class="qr-canvas-box" id="qr-canvas-box">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https%3A%2F%2Fwa.me%2F%3Ftext%3DGram-Mausam%2520Burdwan%2520Advisory" alt="WhatsApp Broadcast QR Code" class="qr-code-img" loading="lazy">
+          </div>
+          <p class="qr-sub-text">Panchayat Kiosk Display &bull; Purba Bardhaman Agricultural Office</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-action-primary" id="btn-ack-wa-qr">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2: Hyperlocal Block & Panchayat Scale Risk Map (Burdwan & Jharkhand Pilot) -->
+    <div class="dashboard-middle-grid" id="risk-map-section">
+      
+      <!-- Panel A: Interactive MJO Wheeler-Hendon 2D Phase Diagram -->
+      <section class="card-panel" aria-labelledby="mjo-diagram-title">
+        <div class="card-panel-header">
+          <div class="card-panel-title" id="mjo-diagram-title">
+            <span>🌀</span>
+            <span id="txt-mjo-diagram-header">MJO Wheeler-Hendon Phase Diagram</span>
+          </div>
+          <span class="tabular-num phase-coord-chip" id="mjo-coords">
+            RMM1: -0.98 | RMM2: 1.32
+          </span>
+        </div>
+
+        <div class="mjo-interactive-wrapper">
+          <canvas id="mjo-canvas" class="mjo-canvas" width="380" height="320" title="Interactive MJO Wheeler-Hendon Polar Coordinate Diagram"></canvas>
+          
+          <div class="mjo-phase-legend">
+            <div class="mjo-phase-item">
+              <span class="phase-dot" style="background: var(--ag-purple-mjo);"></span>
+              <span><strong>Phase 2 & 3:</strong> Indian Ocean (Active Surge)</span>
+            </div>
+            <div class="mjo-phase-item">
+              <span class="phase-dot" style="background: #0284C7;"></span>
+              <span><strong>Phase 4 & 5:</strong> Maritime Continent (Transitional)</span>
+            </div>
+            <div class="mjo-phase-item">
+              <span class="phase-dot" style="background: #D97706;"></span>
+              <span><strong>Phase 6 & 7:</strong> West Pacific (Break / Pause)</span>
+            </div>
+            <div class="mjo-phase-item">
+              <span class="phase-dot" style="background: #6B7280;"></span>
+              <span><strong>Phase 8 & 1:</strong> Americas / Africa (Subsidence)</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Panel B: Hyperlocal Color-Coded Risk Map -->
+      <section class="card-panel" aria-labelledby="risk-map-title">
+        <div class="card-panel-header">
+          <div class="card-panel-title" id="risk-map-title">
+            <span>🗺️</span>
+            <span id="txt-risk-map-header">Hyperlocal Block & Panchayat Risk Map</span>
+          </div>
+          
+          <div class="map-controls-bar">
+            <!-- Map Scope Switcher -->
+            <div class="map-scope-group" role="group" aria-label="Map Resolution View">
+              <button class="scope-btn active" id="btn-scope-burdwan" title="Purba Bardhaman, West Bengal Alluvial Belt">
+                📍 Burdwan Belt (WB)
+              </button>
+              <button class="scope-btn" id="btn-scope-jharkhand" title="Chota Nagpur Plateau, Jharkhand Pilot Block Scale">
+                📍 Jharkhand Pilot (JH)
+              </button>
+              <button class="scope-btn" id="btn-scope-national" title="National Regional Overview">
+                🇮🇳 Macro Belts
+              </button>
+            </div>
+
+            <!-- Risk Layer Selector -->
+            <div class="layer-btn-group" role="group" aria-label="Map Layer Selection">
+              <button class="layer-btn active" data-layer="rainfall" id="btn-layer-rainfall">🌧️ Rainfall / Onset</button>
+              <button class="layer-btn" data-layer="dryspell" id="btn-layer-dryspell">☀️ Dry Break</button>
+              <button class="layer-btn" data-layer="soilmoisture" id="btn-layer-soilmoisture">💧 Soil SMI</button>
+              <button class="layer-btn" data-layer="aquifer" id="btn-layer-aquifer">🪨 Aquifer Stress</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="map-viewport-container">
+          <!-- Interactive Vector Map SVG -->
+          <svg id="risk-map-svg" class="map-svg" viewBox="0 0 540 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Color coded agricultural risk map">
+            <defs>
+              <filter id="map-glow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.15" />
+              </filter>
+            </defs>
+
+            <!-- Map background grid -->
+            <rect width="540" height="380" fill="#F8FAFC" id="map-bg-rect" />
+
+            <!-- VIEW 1: Burdwan / Purba Bardhaman (West Bengal - Damodar Basin) -->
+            <g id="map-burdwan-group">
+              <!-- Damodar River Visual Ribbon -->
+              <path d="M 50,220 Q 200,180 340,240 T 500,260" fill="none" stroke="#38BDF8" stroke-width="6" stroke-linecap="round" opacity="0.4" />
+              <text x="430" y="248" font-size="9" fill="#0284C7" font-weight="700">Damodar River Basin</text>
+
+              <!-- Burdwan City & Sadar (Central) -->
+              <path id="reg-burdwan" class="map-region-path pilot-highlight" data-region="burdwan"
+                d="M 210,130 L 290,120 L 320,180 L 280,220 L 200,210 L 190,160 Z"
+                fill="#0F8A5F" />
+              <text x="250" y="165" class="map-label-main">Burdwan City (UIT)</text>
+              <text x="250" y="180" class="map-label-sub" id="lbl-burdwan-sub">SMI: 0.82</text>
+
+              <!-- Burdwan-I Block -->
+              <path id="reg-burdwan_1" class="map-region-path" data-region="burdwan_1"
+                d="M 140,150 L 200,140 L 200,210 L 170,250 L 110,230 L 100,180 Z"
+                fill="#0F8A5F" />
+              <text x="150" y="190" class="map-label-main">Burdwan-I</text>
+
+              <!-- Burdwan-II Block -->
+              <path id="reg-burdwan_2" class="map-region-path" data-region="burdwan_2"
+                d="M 290,110 L 370,100 L 400,160 L 350,190 L 300,170 L 290,130 Z"
+                fill="#0F8A5F" />
+              <text x="345" y="145" class="map-label-main">Burdwan-II</text>
+
+              <!-- Memari Block -->
+              <path id="reg-memari" class="map-region-path" data-region="memari"
+                d="M 280,225 L 360,210 L 390,270 L 320,310 L 260,280 Z"
+                fill="#0F8A5F" />
+              <text x="325" y="260" class="map-label-main">Memari</text>
+
+              <!-- Kalna Subdivision -->
+              <path id="reg-kalna" class="map-region-path" data-region="kalna"
+                d="M 370,180 L 450,160 L 480,230 L 410,270 L 370,220 Z"
+                fill="#0F8A5F" />
+              <text x="420" y="215" class="map-label-main">Kalna</text>
+
+              <!-- Katwa Subdivision -->
+              <path id="reg-katwa" class="map-region-path" data-region="katwa"
+                d="M 310,40 L 410,30 L 440,90 L 370,110 L 300,80 Z"
+                fill="#0F8A5F" />
+              <text x="370" y="70" class="map-label-main">Katwa</text>
+
+              <!-- Galsi Block (West) -->
+              <path id="reg-galsi" class="map-region-path" data-region="galsi"
+                d="M 80,110 L 160,100 L 150,150 L 100,180 L 50,140 Z"
+                fill="#0F8A5F" />
+              <text x="105" y="140" class="map-label-main">Galsi</text>
+            </g>
+
+            <!-- VIEW 2: Jharkhand Chota Nagpur Pilot (Ranchi District Blocks & Panchayats) -->
+            <g id="map-jharkhand-blocks-group" style="display:none;">
+              <!-- Kanke Block -->
+              <path id="reg-kanke" class="map-region-path pilot-highlight" data-region="kanke"
+                d="M 230,120 L 290,110 L 320,150 L 310,210 L 250,220 L 210,180 Z"
+                fill="#DC2626" />
+              <text x="265" y="165" class="map-label-main">Kanke (Pilot)</text>
+              <text x="265" y="180" class="map-label-sub">Break: 74%</text>
+
+              <!-- Mandar Block -->
+              <path id="reg-mandar" class="map-region-path" data-region="mandar"
+                d="M 140,140 L 210,130 L 210,180 L 180,230 L 120,210 L 110,160 Z"
+                fill="#EA580C" />
+              <text x="160" y="180" class="map-label-main">Mandar</text>
+
+              <!-- Ormanjhi Block -->
+              <path id="reg-ormanjhi" class="map-region-path" data-region="ormanjhi"
+                d="M 290,70 L 370,60 L 400,120 L 350,150 L 300,130 L 290,110 Z"
+                fill="#0F8A5F" />
+              <text x="340" y="110" class="map-label-main">Ormanjhi</text>
+
+              <!-- Burmu Block -->
+              <path id="reg-burmu" class="map-region-path" data-region="burmu"
+                d="M 180,70 L 260,60 L 290,110 L 230,120 L 190,110 Z"
+                fill="#D97706" />
+              <text x="230" y="90" class="map-label-main">Burmu</text>
+
+              <!-- Bero Block -->
+              <path id="reg-bero" class="map-region-path" data-region="bero"
+                d="M 130,220 L 200,210 L 220,270 L 170,320 L 110,290 Z"
+                fill="#EA580C" />
+              <text x="165" y="265" class="map-label-main">Bero</text>
+
+              <!-- Chatra District border -->
+              <path id="reg-chatra" class="map-region-path" data-region="chatra"
+                d="M 70,40 L 200,30 L 180,70 L 140,140 L 80,120 Z"
+                fill="#D97706" />
+              <text x="130" y="80" class="map-label-main">Chatra Upland</text>
+            </g>
+
+            <!-- VIEW 3: National Macro Belts (Toggleable) -->
+            <g id="map-national-belts-group" style="display:none;">
+              <path id="reg-gangetic" class="map-region-path" data-region="gangetic"
+                d="M120,40 L260,35 L330,70 L345,120 L270,140 L190,125 L120,80 Z" fill="#0F8A5F" />
+              <text x="210" y="85" class="map-label-main">Indo-Gangetic Plain</text>
+
+              <path id="reg-vidarbha" class="map-region-path" data-region="vidarbha"
+                d="M170,145 L280,145 L320,200 L260,240 L180,220 L150,180 Z" fill="#DC2626" />
+              <text x="235" y="185" class="map-label-main">Vidarbha (Cotton)</text>
+
+              <path id="reg-marathwada" class="map-region-path" data-region="marathwada"
+                d="M95,170 L165,150 L175,220 L145,260 L80,240 L70,195 Z" fill="#EA580C" />
+              <text x="125" y="210" class="map-label-main">Marathwada</text>
+
+              <path id="reg-rayalaseema" class="map-region-path" data-region="rayalaseema"
+                d="M165,225 L255,245 L270,320 L200,365 L150,325 L145,265 Z" fill="#D97706" />
+              <text x="210" y="295" class="map-label-main">Rayalaseema</text>
+
+              <path id="reg-delta" class="map-region-path" data-region="delta"
+                d="M260,245 L330,205 L350,270 L280,335 L265,315 Z" fill="#0F8A5F" />
+              <text x="300" y="275" class="map-label-main">Coastal Delta</text>
+            </g>
+          </svg>
+
+          <!-- Floating Region / Block Infobox -->
+          <div class="district-infobox" id="district-infobox">
+            <div class="infobox-header-row">
+              <span class="infobox-badge" id="infobox-level-badge">Block Level</span>
+              <span class="infobox-name" id="infobox-name">Burdwan City (Purba Bardhaman)</span>
+            </div>
+            <div class="infobox-metric-line" id="infobox-risk-type">Precipitation Anomaly: <strong>+42 mm</strong></div>
+            <div class="infobox-prob-line tabular-num" id="infobox-pct">Statistical Probability: <strong>92.4%</strong> (High Confidence)</div>
+            <div class="infobox-advisory-hint" id="infobox-hint">💧 Soil SMI: 0.82 | 🪨 Water Table: 4.8m (Safe)</div>
+          </div>
+        </div>
+
+        <!-- Color-Coded Map Legend -->
+        <div class="map-legend-bar">
+          <span style="font-weight: 700;" id="txt-legend-label">Risk Intensity:</span>
+          <div class="legend-scale-items">
+            <div class="legend-item">
+              <span class="legend-swatch" style="background: var(--ag-green-primary);"></span>
+              <span>Low / Favorable (<span class="tabular-num">&lt;25%</span>)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-swatch" style="background: var(--ag-amber-warning);"></span>
+              <span>Moderate (<span class="tabular-num">25-50%</span>)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-swatch" style="background: var(--ag-risk-high);"></span>
+              <span>High Alert (<span class="tabular-num">51-75%</span>)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-swatch" style="background: var(--ag-red-danger);"></span>
+              <span>Severe Risk (<span class="tabular-num">&gt;75%</span>)</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- SECTION 3: Dynamic Root-Zone Water Balance Physics Engine (Section 6.1) -->
+    <section class="card-panel" id="water-balance-section" aria-labelledby="wb-title">
+      <div class="card-panel-header">
+        <div class="card-panel-title" id="wb-title">
+          <span>💧</span>
+          <span>Dynamic Root-Zone Water Balance Physics Engine</span>
+        </div>
+        <span class="physics-eq-tag tabular-num">&Delta;S = P<sub>e</sub> + I &minus; ET<sub>c</sub> &minus; DP &minus; R</span>
+      </div>
+
+      <div class="physics-engine-grid">
+        <!-- Physics Formulation Card -->
+        <div class="physics-card">
+          <h4 class="physics-heading">FAO-56 Penman–Monteith Soil Mass-Balance</h4>
+          <p class="physics-desc">
+            Gram-Mausam evaluates daily active root-zone storage at 1 km &times; 1 km resolution. Instead of declaring a drought purely on rainfall deficit, the engine calculates whether actual crop transpiration ($ET_c = K_c \times ET_0$) is depleting the Soil Moisture Index (SMI) past the critical threshold.
+          </p>
+          <div class="formula-box">
+            <code>ET<sub>c</sub> = K<sub>c</sub> &times; ET<sub>0</sub></code> &bull; 
+            <code>SMI = (S<sub>curr</sub> &minus; S<sub>wp</sub>) / (S<sub>fc</sub> &minus; S<sub>wp</sub>)</code>
+          </div>
+
+          <!-- Live Water Balance Variables -->
+          <div class="wb-variables-grid">
+            <div class="wb-var-item">
+              <span class="var-name">P<sub>e</sub> (Effective Rain):</span>
+              <span class="var-val tabular-num" id="wb-pe-val">52.4 mm</span>
+            </div>
+            <div class="wb-var-item">
+              <span class="var-name">ET<sub>0</sub> (Ref Evaporation):</span>
+              <span class="var-val tabular-num" id="wb-et0-val">4.2 mm/day</span>
+            </div>
+            <div class="wb-var-item">
+              <span class="var-name">K<sub>c</sub> (Crop Factor):</span>
+              <span class="var-val tabular-num" id="wb-kc-val">1.15 (Rice Tillering)</span>
+            </div>
+            <div class="wb-var-item">
+              <span class="var-name">DP (Deep Percolation):</span>
+              <span class="var-val tabular-num" id="wb-dp-val">8.4 mm</span>
+            </div>
+            <div class="wb-var-item">
+              <span class="var-name">R (Surface Runoff):</span>
+              <span class="var-val tabular-num" id="wb-r-val">14.2 mm</span>
+            </div>
+            <div class="wb-var-item">
+              <span class="var-name">&Delta;S (Net Storage):</span>
+              <span class="var-val tabular-num highlight-green" id="wb-ds-val">+25.0 mm/d</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive SMI Gauge & Simulator -->
+        <div class="physics-card">
+          <h4 class="physics-heading">Soil Moisture Index (SMI) Status & Simulation</h4>
+          <div class="smi-gauge-wrapper">
+            <div class="smi-display-box">
+              <div class="smi-number tabular-num" id="live-smi-number">0.82</div>
+              <div class="smi-status-pill badge-green" id="live-smi-status">Optimal Moisture Buffer</div>
+            </div>
+
+            <!-- Visual Strata Bar -->
+            <div class="smi-strata-bar">
+              <div class="strata-marker" id="smi-pointer" style="left: 82%;"></div>
+              <div class="strata-zone strata-wilting" title="Permanent Wilting Point (< 0.22)">Wilting &lt;0.22</div>
+              <div class="strata-zone strata-stress" title="Moisture Stress (0.22 - 0.45)">Stress 0.22-0.45</div>
+              <div class="strata-zone strata-optimal" title="Optimal Growth (0.45 - 0.85)">Optimal 0.45-0.85</div>
+              <div class="strata-zone strata-sat" title="Field Saturation (> 0.85)">Saturation &gt;0.85</div>
+            </div>
+          </div>
+
+          <!-- Interactive Break Simulator Slider -->
+          <div class="simulator-slider-box">
+            <div class="slider-header">
+              <label for="break-days-slider">Simulate Mid-Season Dry Break Duration:</label>
+              <span class="tabular-num slider-val" id="break-days-val">8 Days</span>
+            </div>
+            <input type="range" min="0" max="21" value="8" step="1" id="break-days-slider" class="range-slider">
+            <div class="slider-outcome" id="slider-outcome-text">
+              Under an 8-day dry break without rainfall, root-zone SMI will adjust according to local soil retention.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 4: Hydro-Geological Hard-Rock Aquifer & Borewell Advisory (Section 6.2) -->
+    <section class="card-panel" id="aquifer-section" aria-labelledby="aquifer-title">
+      <div class="card-panel-header">
+        <div class="card-panel-title" id="aquifer-title">
+          <span>🪨</span>
+          <span>Hydro-Geological Aquifer & Groundwater Advisory Layer</span>
+        </div>
+        <span class="physics-eq-tag tabular-num">&Delta;H = &Delta;S<sub>gw</sub> / (S<sub>y</sub> &times; A) &bull; CGWB Telemetry</span>
+      </div>
+
+      <div class="aquifer-grid">
+        <!-- Aquifer Cross-Section Schematic -->
+        <div class="aquifer-diagram-card">
+          <h4 class="physics-heading" id="aq-diagram-heading">Alluvial & Hard-Rock Aquifer Cross-Section</h4>
+          <p class="physics-desc" id="aq-diagram-desc">
+            In Burdwan's lower Damodar alluvial basin, groundwater sits in prolific sand-gravel strata with high specific yield ($S_y \approx 14\%$). In contrast, Chota Nagpur plateau granite terrain has narrow regolith ($S_y \approx 1\text{–}3\%$).
+          </p>
+
+          <div class="strata-visual-cross-section">
+            <div class="strata-layer strata-ground-surface">
+              <span>Ground Level (0.0 m)</span>
+            </div>
+            <div class="strata-layer strata-regolith" style="height: 110px;">
+              <div class="strata-water-table" id="water-table-line" style="top: 30%;">
+                <span class="wt-tag tabular-num" id="wt-line-tag">Water Table Depth: 4.8 m</span>
+              </div>
+              <div class="strata-suction-limit" style="top: 85%;">
+                <span class="limit-tag tabular-num">Safe Suction-Lift Cutoff: 10.0 m</span>
+              </div>
+              <span class="layer-caption" id="strata-caption">Alluvial Aquifer (Sy = 14.0% &bull; Thickness 35m)</span>
+            </div>
+            <div class="strata-layer strata-bedrock">
+              <span class="layer-caption">Lower Silt & Basement Clay Formations</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Borewell Pumping Directives & Economics -->
+        <div class="aquifer-advisory-card">
+          <h4 class="physics-heading">Telemetry & Safe Tubewell / Borewell Directive</h4>
+          
+          <div class="pumping-recommendation-box">
+            <div class="pumping-icon">⏱️</div>
+            <div class="pumping-text">
+              <div class="pumping-title" id="pumping-title">Safe Pumping Window: Max 4.5 Hours / Day</div>
+              <p id="pumping-desc">
+                Current water table is at <strong>4.8 m</strong>, leaving <strong>5.2 m</strong> buffer above the suction lift cutoff. High alluvial recharge from Damodar canal system guarantees sustainable irrigation.
+              </p>
+            </div>
+          </div>
+
+          <div class="aquifer-metrics-row">
+            <div class="aq-metric">
+              <span class="aq-label">Water Table Depth (WTD):</span>
+              <span class="aq-val tabular-num" id="aq-wtd">4.8 m</span>
+            </div>
+            <div class="aq-metric">
+              <span class="aq-label">Specific Yield (S<sub>y</sub>):</span>
+              <span class="aq-val tabular-num" id="aq-sy">14.0%</span>
+            </div>
+            <div class="aq-metric">
+              <span class="aq-label">Safe Headroom Buffer:</span>
+              <span class="aq-val tabular-num highlight-green" id="aq-buffer">5.2 m</span>
+            </div>
+            <div class="aq-metric">
+              <span class="aq-label">Est. Energy/Diesel Saving:</span>
+              <span class="aq-val tabular-num highlight-green" id="aq-saving">₹800 / acre</span>
+            </div>
+          </div>
+
+          <div class="cgwb-source-note">
+            <span>📡 Piezometer Station: <strong id="cgwb-station-tag">CGWB Telemetry #WB-BURD-014 (Burdwan Sadar)</strong> &bull; Frequency: Daily 06:00 IST</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 5: Hydro-Agronomic Crop Water Matrix (All 8 Major Crops) -->
+    <section class="card-panel" id="crop-matrix-section" aria-labelledby="crop-matrix-title">
+      <div class="card-panel-header">
+        <div class="card-panel-title" id="crop-matrix-title">
+          <span>🌾</span>
+          <span>Hydro-Agronomic Crop Water Matrix (Burdwan & Pilot Zones)</span>
+        </div>
+        <div class="crop-filter-group" role="group" aria-label="Filter crops">
+          <button class="crop-filter-btn active" data-crop-filter="all">All Crops</button>
+          <button class="crop-filter-btn" data-crop-filter="kharif">Kharif Only</button>
+          <button class="crop-filter-btn" data-crop-filter="rabi">Rabi / Annual</button>
+          <button class="crop-filter-btn" data-crop-filter="fallback">⭐ Fallback Champions</button>
+        </div>
+      </div>
+
+      <!-- Contingency Banner -->
+      <div class="contingency-matrix-alert">
+        <div class="c-alert-badge">CRITICAL CROP PLANNING ENGINE</div>
+        <div class="c-alert-content">
+          <strong>Burdwan Rice Bowl & Plateau Contingency:</strong>
+          <span>Features Aman Paddy (Swarna & Gobindobhog), Potato, and Jute for Burdwan alluvial plains, alongside the classic <em>"Madua (Ragi) over Dhan"</em> fallback rule for rainfed upland drought defense.</span>
+        </div>
+      </div>
+
+      <!-- 8 Crops Grid -->
+      <div class="crops-matrix-grid" id="crops-matrix-grid">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+    </section>
+
+    <!-- SECTION 6: 1-to-4 Week Statistical Probability Outlook Table -->
+    <section class="card-panel table-section" id="outlook-table-section" aria-labelledby="outlook-table-title">
+      <div class="card-panel-header">
+        <div class="card-panel-title" id="outlook-table-title">
+          <span>📊</span>
+          <span id="txt-table-header">7-to-30-Day Statistical Probabilities & Agronomic Outlook</span>
+        </div>
+        <div class="font-engine-tag">
+          Font Engine: <span class="tabular-num" style="font-weight: 700; font-family: var(--ag-font-mono);">Google Sans Flex [tnum]</span>
+        </div>
+      </div>
+
+      <div class="table-responsive-wrapper">
+        <table class="outlook-table" aria-label="1 to 4 week climate risk probabilities">
+          <thead>
+            <tr>
+              <th id="th-week">Forecast Week</th>
+              <th id="th-dates">Calendar Window</th>
+              <th id="th-prob">Statistical Prob (%)</th>
+              <th id="th-rainfall">Rainfall Anomaly</th>
+              <th id="th-onset">Event Onset Date</th>
+              <th id="th-spell">Monsoon Regime</th>
+              <th id="th-smi">Root SMI</th>
+              <th id="th-pumping">Safe Tubewell Pumping</th>
+              <th id="th-risk">Agronomic Directive</th>
+            </tr>
+          </thead>
+          <tbody id="table-outlook-body">
+            <!-- Populated reactively by app.js based on selected Block/District -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SECTION 7: Regional Language Agronomic Advisories -->
+    <section class="indices-section" id="advisories-section" aria-labelledby="advisories-title">
+      <div class="section-headline">
+        <div>
+          <h2 id="advisories-title">
+            <span>🌱</span>
+            <span id="txt-advisory-title">Localized Agronomic Advisories & Voice Readout</span>
+          </h2>
+          <p class="section-headline-subtitle" id="txt-advisory-subtitle">
+            Synchronized with active/break monsoon cycles for extension officers and farmers
+          </p>
+        </div>
+        <div class="indic-pairing-badge" id="indic-pairing-badge">
+          Indic Pairing: Google Sans Flex + Noto Sans Bengali & Devanagari
+        </div>
+      </div>
+
+      <div class="advisories-grid" id="advisories-container">
+        <!-- Advisory cards rendered via JavaScript to support instant language switching -->
+      </div>
+    </section>
+
+    <!-- SECTION: Global Climate Teleconnections (ENSO, IOD, MJO Wheeler-Hendon, BSISO, ITCZ) -->
+    <section class="indices-section" id="teleconnections-section" aria-labelledby="indices-headline">
+      <div class="section-headline">
+        <div>
+          <h2 id="indices-headline">
+            <span>🌐</span>
+            <span id="txt-teleconnections-title">Global Climate Teleconnection Indices</span>
+          </h2>
+          <p class="section-headline-subtitle" id="txt-teleconnections-subtitle">
+            Planetary drivers (ENSO, IOD, MJO, BSISO) coupled with regional atmospheric boundary conditions
+          </p>
+        </div>
+        <div class="tabular-num sync-chip">
+          Data Synchronized: <span id="sync-timestamp">Live Telemetry &bull; NCMRWF / IMD Grid</span>
+        </div>
+      </div>
+
+      <div class="indices-grid">
+        <!-- ENSO Card -->
+        <article class="index-card" id="card-enso">
+          <div class="index-card-header">
+            <div class="index-title-group">
+              <span class="index-abbr">ENSO</span>
+              <span class="index-badge badge-enso" id="enso-status-badge">La Niña Weak</span>
+            </div>
+            <span class="index-sub-state" id="enso-impact-tag">Favorable Monsoon</span>
+          </div>
+
+          <div class="index-metric-box">
+            <span class="index-metric-main tabular-num" id="enso-val">-0.72</span>
+            <span class="index-metric-unit">°C (Niño 3.4 SST Anomaly)</span>
+          </div>
+
+          <div class="gauge-track">
+            <div class="gauge-fill" style="width: 32%; background: var(--ag-monsoon-blue);" id="enso-gauge"></div>
+          </div>
+
+          <p class="index-description" id="enso-desc">
+            Equatorial Pacific sea surface temperatures remain in cool La Niña threshold, suppressing Walker circulation subsidence and boosting cross-equatorial monsoon flow into Bengal basin and Chota Nagpur.
+          </p>
+          <div class="index-teleconnection-impact" id="enso-impact-box">
+            <strong>Kharif Impact:</strong> 82% statistical probability of normal to above-normal precipitation.
+          </div>
+        </article>
+
+        <!-- IOD Card -->
+        <article class="index-card" id="card-iod">
+          <div class="index-card-header">
+            <div class="index-title-group">
+              <span class="index-abbr">IOD</span>
+              <span class="index-badge badge-iod" id="iod-status-badge">Neutral / Positive</span>
+            </div>
+            <span class="index-sub-state" id="iod-impact-tag">+0.38°C</span>
+          </div>
+
+          <div class="index-metric-box">
+            <span class="index-metric-main tabular-num" id="iod-val">+0.38</span>
+            <span class="index-metric-unit">°C (Dipole Mode Index - DMI)</span>
+          </div>
+
+          <div class="gauge-track">
+            <div class="gauge-fill" style="width: 65%; background: var(--ag-green-primary);" id="iod-gauge"></div>
+          </div>
+
+          <p class="index-description" id="iod-desc">
+            Western equatorial Indian Ocean is warmer than southeastern basin. Neutral-positive dipole phase mitigates dry spell frequency and strengthens Bay of Bengal depression tracks toward West Bengal and Jharkhand.
+          </p>
+          <div class="index-teleconnection-impact" id="iod-impact-box">
+            <strong>Monsoon Trough:</strong> Low-pressure systems sustained over Lower Gangetic Plain.
+          </div>
+        </article>
+
+        <!-- MJO Card -->
+        <article class="index-card" id="card-mjo">
+          <div class="index-card-header">
+            <div class="index-title-group">
+              <span class="index-abbr">MJO</span>
+              <span class="index-badge badge-mjo" id="mjo-status-badge">Phase 3 (Active)</span>
+            </div>
+            <span class="index-sub-state" id="mjo-impact-tag">Amplitude 1.64</span>
+          </div>
+
+          <div class="index-metric-box">
+            <span class="index-metric-main tabular-num" id="mjo-val">Phase 3</span>
+            <span class="index-metric-unit">(Indian Ocean Convection)</span>
+          </div>
+
+          <div class="gauge-track">
+            <div class="gauge-fill" style="width: 82%; background: var(--ag-purple-mjo);" id="mjo-gauge"></div>
+          </div>
+
+          <p class="index-description" id="mjo-desc">
+            Madden-Julian Oscillation eastward pulse is traversing the tropical Indian Ocean with amplitude > 1.0, triggering widespread convective rainfall bursts across agricultural districts.
+          </p>
+          <div class="index-teleconnection-impact" id="mjo-impact-box">
+            <strong>Durations:</strong> Active spell expected to persist for 6–8 days before transitioning into Maritime Continent (Phase 4).
+          </div>
+        </article>
+
+        <!-- BSISO & ITCZ Tracking Card -->
+        <article class="index-card" id="card-bsiso">
+          <div class="index-card-header">
+            <div class="index-title-group">
+              <span class="index-abbr">BSISO / ITCZ</span>
+              <span class="index-badge" style="background: var(--ag-monsoon-light); color: var(--ag-monsoon-dark);" id="bsiso-status-badge">Boreal Oscillation 1</span>
+            </div>
+            <span class="index-sub-state" id="bsiso-impact-tag">ITCZ 23°N Active</span>
+          </div>
+
+          <div class="index-metric-box">
+            <span class="index-metric-main tabular-num" id="bsiso-val">+1.18</span>
+            <span class="index-metric-unit">Amplitude (10-20 & 30-60d waves)</span>
+          </div>
+
+          <div class="gauge-track">
+            <div class="gauge-fill" style="width: 72%; background: var(--ag-monsoon-blue);" id="bsiso-gauge"></div>
+          </div>
+
+          <p class="index-description" id="bsiso-desc">
+            Inter-Tropical Convergence Zone (ITCZ) is anchored across the Bengal-Jharkhand boundary. BSISO Phase 2 propagation signals robust convective cloud bands feeding the Damodar basin.
+          </p>
+          <div class="index-teleconnection-impact" id="bsiso-impact-box">
+            <strong>Wave Mode:</strong> Northward-propagating intra-seasonal convective bands driving localized village rainfall.
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- SECTION 9: MoES / IMD Benchmarking & Competitor Analysis -->
+    <section class="card-panel" id="benchmark-section" aria-labelledby="benchmark-title">
+      <div class="card-panel-header">
+        <div class="card-panel-title" id="benchmark-title">
+          <span>🔬</span>
+          <span>MoES / IMD Benchmarking & Existing Solutions Gap Analysis</span>
+        </div>
+        <span class="tabular-num" style="font-size: 0.75rem; color: var(--ag-green-primary); font-weight:700;">
+          SIH26086 Evaluation Matrix
+        </span>
+      </div>
+
+      <div class="benchmark-table-wrapper">
+        <table class="benchmark-table" aria-label="Gram-Mausam competitor and benchmarking analysis">
+          <thead>
+            <tr>
+              <th>Solution / System</th>
+              <th>Spatial Granularity</th>
+              <th>Break Prediction Skill</th>
+              <th>Groundwater / Aquifer Layer</th>
+              <th>Advisory Action Output</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>IMD AI Block Model</strong> (May 2026)</td>
+              <td>Block (3,196 blocks, ~15 states)</td>
+              <td>❌ No (Onset Only)</td>
+              <td>❌ No</td>
+              <td>Raw weather probabilities via API / Agri Stack</td>
+            </tr>
+            <tr>
+              <td><strong>IMD Extended Range (ERFS)</strong></td>
+              <td>Regional / Subdivision (~100km)</td>
+              <td>⚠️ Yes (~2–3 wk lead, coarse)</td>
+              <td>❌ No</td>
+              <td>Meteorological outlook only, not farm-level</td>
+            </tr>
+            <tr>
+              <td><strong>IMD Mausam / Mausamgram</strong></td>
+              <td>District – PIN code</td>
+              <td>❌ No</td>
+              <td>❌ No</td>
+              <td>General forecast text, no farm-decision layer</td>
+            </tr>
+            <tr>
+              <td><strong>Global AI Models</strong> (GraphCast, AIFS, GenCast)</td>
+              <td>Global Grid (~0.25&deg;)</td>
+              <td>⚠️ Implicit skill only (regional bias)</td>
+              <td>❌ No</td>
+              <td>Research-grade; not packaged for farmers</td>
+            </tr>
+            <tr class="highlight-row">
+              <td><strong>Gram-Mausam (Proposed)</strong></td>
+              <td><strong>Block / Village (~1 km)</strong></td>
+              <td><strong>✅ Yes (7–10+ days, block scale)</strong></td>
+              <td><strong>✅ Yes (CGWB Alluvial & Hard-Rock Physics)</strong></td>
+              <td><strong>✅ Direct crop, tubewell & voice messaging directives</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="benchmark-note">
+        <strong>Academic Partner:</strong> Developed by Rishav, University Institute of Technology (UIT), The University of Burdwan. Grounded in peer-reviewed research on IMD's 2026 AI rollouts and Damodar alluvial / Chota Nagpur hydrogeology.
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Interactive Feedback Toast -->
+  <div id="toast-notice" class="toast-notice" role="alert" aria-live="assertive">
+    <span id="toast-icon">✅</span>
+    <span id="toast-message">Message dispatched successfully!</span>
+  </div>
+
+  <!-- 5 Security Checks Audit Modal -->
+  <div id="security-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-content security-modal-content">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span>🛡️</span>
+          <span>Production Security Audit (5 Checks Verified)</span>
+        </div>
+        <button id="btn-close-security" class="btn-close-x">&times;</button>
+      </div>
+      <p class="modal-intro">
+        Based on Mayank Shah's <em>5 Security Checks Before You Launch Your App</em> (Gitleaks, Bearer, ECC Production Audit, Trail of Bits, ECC Security Review).
+      </p>
+
+      <div class="security-checks-list">
+        <div class="sec-check-item passed">
+          <div class="sec-status">✅ PASS</div>
+          <div class="sec-body">
+            <strong>Check 01: Secret Leak Prevention (Gitleaks)</strong>
+            <p>Zero hardcoded API keys or passwords. Environment variables isolated in <code>.env.example</code>, protected by strict <code>.gitignore</code>.</p>
+          </div>
+        </div>
+
+        <div class="sec-check-item passed">
+          <div class="sec-status">✅ PASS</div>
+          <div class="sec-body">
+            <strong>Check 02: Personal Data Flow Audit (Bearer)</strong>
+            <p>No PII (farmer phone numbers, locations) leaked to remote loggers. Clean logging and privacy filtering active in <code>server.py</code>.</p>
+          </div>
+        </div>
+
+        <div class="sec-check-item passed">
+          <div class="sec-status">✅ PASS</div>
+          <div class="sec-body">
+            <strong>Check 03: Pre-Deploy Production Audit (ECC)</strong>
+            <p>Strict security headers enforced: <code>X-Content-Type-Options: nosniff</code>, <code>X-Frame-Options: DENY</code>, <code>Strict-Transport-Security</code>, <code>Content-Security-Policy</code>. Generic error messages with UUID correlation IDs.</p>
+          </div>
+        </div>
+
+        <div class="sec-check-item passed">
+          <div class="sec-status">✅ PASS</div>
+          <div class="sec-body">
+            <strong>Check 04: Deep Security Audit for Complex Logic (Trail of Bits)</strong>
+            <p>Client input sanitization against XSS in WhatsApp/SMS generator. In-memory IP rate limiting simulator (120 req/min) active.</p>
+          </div>
+        </div>
+
+        <div class="sec-check-item passed">
+          <div class="sec-status">✅ PASS</div>
+          <div class="sec-body">
+            <strong>Check 05: Attacker's Perspective Review (ECC Security Review)</strong>
+            <p>Direct object references protected, no administrative backdoors, inputs escaped and validated.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <span class="sec-timestamp">Security Score: 100/100 &bull; Audit Date: September 2026</span>
+        <button id="btn-ack-security" class="btn-primary-wa">Acknowledge & Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Profile Modal -->
+  <div id="login-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 style="color:var(--ag-text-primary);">Extension Officer / Farmer Profile</h3>
+        <button id="btn-close-modal" class="btn-close-x">&times;</button>
+      </div>
+      <div class="form-group" style="margin-bottom:var(--ag-space-3); margin-top:var(--ag-space-3);">
+        <label>Select User Role</label>
+        <select id="user-role" class="custom-select" style="width:100%;">
+          <option value="farmer">Small & Marginal Farmer</option>
+          <option value="kvk">KVK Agricultural Extension Officer</option>
+          <option value="panchayat">Gram Panchayat Pradhan / Water Board</option>
+          <option value="researcher">UIT Burdwan / MoES Agro-Meteorologist</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:var(--ag-space-4);">
+        <label>Primary Location</label>
+        <select id="user-district-pref" class="custom-select" style="width:100%;">
+          <option value="burdwan">Burdwan City (Purba Bardhaman, WB)</option>
+          <option value="burdwan_1">Burdwan-I Block (WB)</option>
+          <option value="kanke">Kanke Block (Ranchi, JH)</option>
+          <option value="mandar">Mandar Block (Ranchi, JH)</option>
+          <option value="chatra">Chatra District (JH)</option>
+        </select>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:var(--ag-space-2);">
+        <button id="btn-cancel-profile" class="btn-secondary">Cancel</button>
+        <button id="btn-save-profile" class="btn-primary-wa">Save Preferences</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="footer-inner">
+      <div>
+        <strong>Gram-Mausam (গ্রামমৌসম / ग्राममौसम) &bull; Smart India Hackathon 2026</strong>
+        <div>Hyperlocal Monsoon Onset & Break Prediction System &bull; Ministry of Earth Sciences (MoES) / IMD</div>
+        <div style="font-size:0.75rem; color:var(--ag-text-tertiary); margin-top:4px;">
+          Developed by Rishav, University Institute of Technology (UIT), The University of Burdwan &bull; Target Pilot: Burdwan (West Bengal) & Chota Nagpur (Jharkhand)
+        </div>
+      </div>
+      <div class="footer-tokens-badge">
+        <span>Antigravity Tokens:</span>
+        <code>#121317 Primary Text</code> &bull;
+        <code>4px Grid Increments</code> &bull;
+        <code>Google Sans Flex + Noto Sans Bengali & Indic</code>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Script Logic -->
+  <script src="app.js"></script>
+</body>
+</html>

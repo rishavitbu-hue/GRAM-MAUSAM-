@@ -1,0 +1,19 @@
+# Environment variables and secrets
+.env
+.env.local
+.env.production
+*.pem
+*.key
+*.token
+
+# Python cache & venv
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+
+# OS metadata
+.DS_Store
+Thumbs.db
